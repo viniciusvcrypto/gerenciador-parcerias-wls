@@ -9,12 +9,17 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
+        origin: process.env.NODE_ENV === 'production' 
+            ? ["https://gerenciador-parcerias-wls.onrender.com"] 
+            : "*",
+        methods: ["GET", "POST"],
+        credentials: true
+    },
+    transports: ['websocket', 'polling']
 });
 
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
 const DB_FILE = path.join(__dirname, 'partnerships.json');
 
 // Middleware
@@ -308,7 +313,7 @@ app.get('/', (req, res) => {
 async function startServer() {
     await loadData();
     
-    server.listen(PORT, () => {
+    server.listen(PORT, HOST, () => {
         console.log('');
         console.log('🚀 ==========================================');
         console.log('🤝 Gerenciador de Parcerias WLs');
