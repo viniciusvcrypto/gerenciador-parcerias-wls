@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Parcerias e WLs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2980b9, #1f618d);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        th {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            padding: 18px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 15px 12px;
+            border-bottom: 1px solid #ecf0f1;
+            vertical-align: top;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+            transition: background-color 0.2s ease;
+        }
+
+        .editable {
+            border: none;
+            background: transparent;
+            width: 100%;
+            resize: none;
+            outline: none;
+            font-family: inherit;
+            font-size: 14px;
+            color: #333;
+            cursor: text;
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .editable:focus {
+            background-color: #fff3cd;
+            box-shadow: 0 0 0 2px #ffc107;
+        }
+
+        .editable.textarea {
+            min-height: 60px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            transform: scale(1.05);
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+            transform: scale(1.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+            font-size: 18px;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 20px;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                text-align: center;
+            }
+
+            th, td {
+                padding: 10px 8px;
+                font-size: 12px;
+            }
+
+            .table-container {
+                border-radius: 8px;
+            }
+        }
+
+        /* Indicador de carregamento */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Animação para novos itens */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤝 Gerenciador de Parcerias e WLs</h1>
+        
+        <div class="controls">
+            <button class="btn btn-primary" onclick="addNewPartnership()">
+                ➕ Adicionar Nova Parceria
+            </button>
+            <button class="btn btn-danger" onclick="clearAllData()">
+                🗑️ Limpar Tudo
+            </button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 200px;">Nome do Projeto</th>
+                        <th style="width: 120px;">Número de WLs</th>
+                        <th style="width: 300px;">Descrição dos Templates</th>
+                        <th style="width: 250px;">Wallets Coletadas</th>
+                        <th style="width: 150px;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="partnershipsTable">
+                    <!-- Linhas serão inseridas dinamicamente pelo JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <div>📋</div>
+            <p>Nenhuma parceria cadastrada ainda.</p>
+            <p>Clique em "Adicionar Nova Parceria" para começar!</p>
+        </div>
+    </div>
+
+    <script>
+        // Classe para gerenciar as parcerias
+        class PartnershipManager {
+            constructor() {
+                this.partnerships = [];
+                this.loadFromStorage();
+                this.render();
+            }
+
+            // Carrega dados do localStorage
+            loadFromStorage() {
+                const saved = localStorage.getItem('partnerships');
+                if (saved) {
+                    try {
+                        this.partnerships = JSON.parse(saved);
+                    } catch (e) {
+                        console.error('Erro ao carregar dados:', e);
+                        this.partnerships = [];
+                    }
+                }
+            }
+
+            // Salva dados no localStorage
+            saveToStorage() {
+                try {
+                    localStorage.setItem('partnerships', JSON.stringify(this.partnerships));
+                } catch (e) {
+                    console.error('Erro ao salvar dados:', e);
+                    alert('Erro ao salvar dados. Verifique o espaço disponível.');
+                }
+            }
+
+            // Gera ID único para cada parceria
+            generateId() {
+                return Date.now().toString(36) + Math.random().toString(36).substr(2);
+            }
+
+            // Adiciona nova parceria
+            addPartnership(partnership = {}) {
+                const newPartnership = {
+                    id: this.generateId(),
+                    projectName: partnership.projectName || '',
+                    numberOfWLs: partnership.numberOfWLs || 0,
+                    templateDescription: partnership.templateDescription || '',
+                    collectedWallets: partnership.collectedWallets || '',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+
+                this.partnerships.unshift(newPartnership); // Adiciona no início
+                this.saveToStorage();
+                this.render();
+                
+                // Foca no primeiro campo da nova linha
+                setTimeout(() => {
+                    const firstInput = document.querySelector(`[data-id="${newPartnership.id}"] .editable`);
+                    if (firstInput) {
+                        firstInput.focus();
+                    }
+                }, 100);
+            }
+
+            // Remove parceria por ID
+            removePartnership(id) {
+                if (confirm('Tem certeza que deseja apagar esta parceria?')) {
+                    this.partnerships = this.partnerships.filter(p => p.id !== id);
+                    this.saveToStorage();
+                    this.render();
+                }
+            }
+
+            // Atualiza parceria
+            updatePartnership(id, field, value) {
+                const partnership = this.partnerships.find(p => p.id === id);
+                if (partnership) {
+                    partnership[field] = value;
+                    partnership.updatedAt = new Date().toISOString();
+                    this.saveToStorage();
+                }
+            }
+
+            // Limpa todos os dados
+            clearAll() {
+                if (confirm('Tem certeza que deseja apagar TODAS as parcerias? Esta ação não pode ser desfeita.')) {
+                    this.partnerships = [];
+                    localStorage.removeItem('partnerships');
+                    this.render();
+                }
+            }
+
+            // Renderiza a tabela
+            render() {
+                const tbody = document.getElementById('partnershipsTable');
+                const emptyState = document.getElementById('emptyState');
+
+                if (this.partnerships.length === 0) {
+                    tbody.innerHTML = '';
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                emptyState.style.display = 'none';
+
+                tbody.innerHTML = this.partnerships.map(partnership => `
+                    <tr class="fade-in" data-id="${partnership.id}">
+                        <td>
+                            <input type="text" 
+                                   class="editable" 
+                                   value="${this.escapeHtml(partnership.projectName)}"
+                                   onblur="manager.updatePartnership('${partnership.id}', 'projectName', this.value)"
+                                   placeholder="Nome do projeto...">
+                        </td>
+                        <td>
+                            <input type="number" 
+                                   class="editable" 
+                                   value="${partnership.numberOfWLs}"
+                                   onblur="manager.updatePartnership('${partnership.id}', 'numberOfWLs', parseInt(this.value) || 0)"
+                                   placeholder="0"
+                                   min="0">
+                        </td>
+                        <td>
+                            <textarea class="editable textarea" 
+                                      onblur="manager.updatePartnership('${partnership.id}', 'templateDescription', this.value)"
+                                      placeholder="Descrição dos templates...">${this.escapeHtml(partnership.templateDescription)}</textarea>
+                        </td>
+                        <td>
+                            <textarea class="editable textarea" 
+                                      onblur="manager.updatePartnership('${partnership.id}', 'collectedWallets', this.value)"
+                                      placeholder="Uma wallet por linha...">${this.escapeHtml(partnership.collectedWallets)}</textarea>
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn-small btn-edit" onclick="manager.editPartnership('${partnership.id}')">
+                                    ✏️ Editar
+                                </button>
+                                <button class="btn-small btn-delete" onclick="manager.removePartnership('${partnership.id}')">
+                                    🗑️ Apagar
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            // Função para editar (foca no primeiro campo)
+            editPartnership(id) {
+                const row = document.querySelector(`[data-id="${id}"]`);
+                if (row) {
+                    const firstInput = row.querySelector('.editable');
+                    if (firstInput) {
+                        firstInput.focus();
+                        firstInput.select();
+                    }
+                }
+            }
+
+            // Escapa HTML para prevenir XSS
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            // Exporta dados para JSON (funcionalidade extra)
+            exportData() {
+                const dataStr = JSON.stringify(this.partnerships, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(dataBlob);
+                link.download = `parcerias-wls-${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+            }
+
+            // Importa dados de JSON (funcionalidade extra)
+            importData(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const imported = JSON.parse(e.target.result);
+                        if (Array.isArray(imported)) {
+                            if (confirm('Importar dados irá substituir todos os dados existentes. Continuar?')) {
+                                this.partnerships = imported;
+                                this.saveToStorage();
+                                this.render();
+                                alert('Dados importados com sucesso!');
+                            }
+                        } else {
+                            alert('Arquivo inválido. Deve conter um array de parcerias.');
+                        }
+                    } catch (error) {
+                        alert('Erro ao importar arquivo. Verifique se é um JSON válido.');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // Inicializa o gerenciador
+        const manager = new PartnershipManager();
+
+        // Funções globais para os botões
+        function addNewPartnership() {
+            manager.addPartnership();
+        }
+
+        function clearAllData() {
+            manager.clearAll();
+        }
+
+        // Atalhos de teclado
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+N para nova parceria
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                addNewPartnership();
+            }
+            
+            // Ctrl+Shift+Delete para limpar tudo
+            if (e.ctrlKey && e.shiftKey && e.key === 'Delete') {
+                e.preventDefault();
+                clearAllData();
+            }
+        });
+
+        // Salva automaticamente quando a página é fechada
+        window.addEventListener('beforeunload', function() {
+            manager.saveToStorage();
+        });
+
+        // Auto-resize para textareas
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('textarea')) {
+                e.target.style.height = 'auto';
+                e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+            }
+        });
+
+        // Feedback visual ao salvar
+        let saveTimeout;
+        function showSaveIndicator() {
+            clearTimeout(saveTimeout);
+            
+            // Adiciona indicador de salvamento
+            const indicator = document.createElement('div');
+            indicator.innerHTML = '💾 Salvo automaticamente';
+            indicator.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #27ae60;
+                color: white;
+                padding: 8px 16px;
+                border-radius: 6px;
+                font-size: 14px;
+                z-index: 1000;
+                animation: fadeIn 0.3s ease-out;
+            `;
+            
+            document.body.appendChild(indicator);
+            
+            setTimeout(() => {
+                indicator.remove();
+            }, 2000);
+        }
+
+        // Intercepta todas as atualizações para mostrar feedback
+        const originalUpdate = manager.updatePartnership.bind(manager);
+        manager.updatePartnership = function(...args) {
+            originalUpdate(...args);
+            showSaveIndicator();
+        };
+
+        console.log('🚀 Gerenciador de Parcerias e WLs carregado com sucesso!');
+        console.log('💡 Dicas:');
+        console.log('   • Ctrl+N: Nova parceria');
+        console.log('   • Ctrl+Shift+Delete: Limpar tudo');
+        console.log('   • Dados salvos automaticamente no navegador');
+    </script>
+</body>
+</html>

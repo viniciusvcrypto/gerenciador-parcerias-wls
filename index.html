@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Parcerias e WLs - Colaborativo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 2.5rem;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .status-connected {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        .status-disconnected {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .users-online {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #34495e;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2980b9, #1f618d);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .table-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            overflow: hidden;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        th {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            padding: 18px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 15px 12px;
+            border-bottom: 1px solid #ecf0f1;
+            vertical-align: top;
+            position: relative;
+        }
+
+        tr:hover {
+            background-color: rgba(52, 152, 219, 0.05);
+            transition: background-color 0.2s ease;
+        }
+
+        .editable {
+            border: none;
+            background: transparent;
+            width: 100%;
+            resize: none;
+            outline: none;
+            font-family: inherit;
+            font-size: 14px;
+            color: #333;
+            cursor: text;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .editable:focus {
+            background-color: #fff3cd;
+            box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.3);
+        }
+
+        .editable.textarea {
+            min-height: 60px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .editing-indicator {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #f39c12;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            z-index: 5;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            transform: scale(1.05);
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+            transform: scale(1.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+            font-size: 18px;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+            z-index: 1000;
+            max-width: 300px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .notification.success {
+            border-left-color: #27ae60;
+        }
+
+        .notification.error {
+            border-left-color: #e74c3c;
+        }
+
+        .notification.warning {
+            border-left-color: #f39c12;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 15px;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                text-align: center;
+            }
+
+            th, td {
+                padding: 10px 8px;
+                font-size: 12px;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+        }
+
+        .user-name-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            outline: none;
+        }
+
+        .modal-content input:focus {
+            border-color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <!-- Modal para nome do usuário -->
+    <div id="userNameModal" class="user-name-modal">
+        <div class="modal-content">
+            <h3>🤝 Bem-vindo ao Gerenciador Colaborativo!</h3>
+            <p>Digite seu nome para começar a colaborar:</p>
+            <input type="text" id="userNameInput" placeholder="Seu nome..." maxlength="30">
+            <button class="btn btn-primary" onclick="setUserName()">Entrar</button>
+        </div>
+    </div>
+
+    <!-- Overlay de carregamento -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🤝 Gerenciador de Parcerias e WLs</h1>
+            <div class="status-bar">
+                <div id="connectionStatus" class="connection-status status-disconnected">
+                    <span id="statusIcon">🔴</span>
+                    <span id="statusText">Conectando...</span>
+                </div>
+                <div class="users-online">
+                    <span>👥</span>
+                    <span id="userCount">0 usuários online</span>
+                </div>
+                <div id="lastUpdate">
+                    📊 <span id="partnershipCount">0</span> parcerias
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" onclick="addNewPartnership()">
+                ➕ Adicionar Nova Parceria
+            </button>
+            <button class="btn btn-danger" onclick="clearAllData()">
+                🗑️ Limpar Tudo
+            </button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 200px;">Nome do Projeto</th>
+                        <th style="width: 120px;">Número de WLs</th>
+                        <th style="width: 300px;">Descrição dos Templates</th>
+                        <th style="width: 250px;">Wallets Coletadas</th>
+                        <th style="width: 150px;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="partnershipsTable">
+                    <!-- Linhas serão inseridas dinamicamente pelo JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <div>📋</div>
+            <p>Nenhuma parceria cadastrada ainda.</p>
+            <p>Clique em "Adicionar Nova Parceria" para começar!</p>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Configuração do cliente
+        class CollaborativePartnershipManager {
+            constructor() {
+                this.partnerships = [];
+                this.socket = null;
+                this.userName = '';
+                this.connectedUsers = [];
+                this.editingUsers = new Map();
+                this.isConnected = false;
+                
+                this.init();
+            }
+
+            async init() {
+                this.showUserNameModal();
+            }
+
+            showUserNameModal() {
+                const modal = document.getElementById('userNameModal');
+                const input = document.getElementById('userNameInput');
+                
+                modal.style.display = 'flex';
+                input.focus();
+                
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.setUserName();
+                    }
+                });
+            }
+
+            setUserName() {
+                const input = document.getElementById('userNameInput');
+                const name = input.value.trim();
+                
+                if (name.length < 2) {
+                    this.showNotification('Nome deve ter pelo menos 2 caracteres', 'error');
+                    return;
+                }
+
+                this.userName = name;
+                document.getElementById('userNameModal').style.display = 'none';
+                this.connectToServer();
+            }
+
+            connectToServer() {
+                this.showLoading(true);
+                
+                try {
+                    this.socket = io();
+                    this.setupSocketEvents();
+                } catch (error) {
+                    console.error('Erro ao conectar:', error);
+                    this.showNotification('Erro ao conectar com o servidor', 'error');
+                    this.showLoading(false);
+                }
+            }
+
+            setupSocketEvents() {
+                // Conectado ao servidor
+                this.socket.on('connect', () => {
+                    console.log('🔗 Conectado ao servidor');
+                    this.isConnected = true;
+                    this.updateConnectionStatus(true);
+                    
+                    // Registra o usuário
+                    this.socket.emit('register', { name: this.userName });
+                    this.showLoading(false);
+                });
+
+                // Dados iniciais
+                this.socket.on('initialData', (data) => {
+                    this.partnerships = data.partnerships || [];
+                    this.connectedUsers = data.connectedUsers || [];
+                    this.render();
+                    this.updateUserCount();
+                    this.showNotification(`Bem-vindo, ${this.userName}! 🎉`, 'success');
+                });
+
+                // Nova parceria adicionada
+                this.socket.on('partnershipAdded', (data) => {
+                    this.partnerships.unshift(data.partnership);
+                    this.render();
+                    this.showNotification(`Nova parceria adicionada por outro usuário`, 'success');
+                });
+
+                // Parceria atualizada
+                this.socket.on('partnershipUpdated', (data) => {
+                    const index = this.partnerships.findIndex(p => p.id === data.partnership.id);
+                    if (index !== -1) {
+                        this.partnerships[index] = data.partnership;
+                        this.render();
+                        this.showNotification(`Parceria atualizada por outro usuário`, 'warning');
+                    }
+                });
+
+                // Parceria removida
+                this.socket.on('partnershipDeleted', (data) => {
+                    this.partnerships = this.partnerships.filter(p => p.id !== data.partnershipId);
+                    this.render();
+                    this.showNotification(`Parceria removida por outro usuário`, 'warning');
+                });
+
+                // Todas as parcerias limpas
+                this.socket.on('allPartnershipsCleared', () => {
+                    this.partnerships = [];
+                    this.render();
+                    this.showNotification(`Todas as parcerias foram limpas por outro usuário`, 'warning');
+                });
+
+                // Usuário entrou
+                this.socket.on('userJoined', (user) => {
+                    this.connectedUsers.push(user);
+                    this.updateUserCount();
+                    this.showNotification(`${user.name} entrou na colaboração`, 'success');
+                });
+
+                // Usuário saiu
+                this.socket.on('userLeft', (user) => {
+                    this.connectedUsers = this.connectedUsers.filter(u => u.id !== user.id);
+                    this.updateUserCount();
+                    this.showNotification(`${user.name} saiu da colaboração`, 'warning');
+                });
+
+                // Usuário editando
+                this.socket.on('userEditing', (data) => {
+                    const key = `${data.partnershipId}-${data.field}`;
+                    this.editingUsers.set(key, data.user);
+                    this.showEditingIndicator(data.partnershipId, data.field, data.user.name);
+                });
+
+                // Usuário parou de editar
+                this.socket.on('userStoppedEditing', (data) => {
+                    const key = `${data.partnershipId}-${data.field}`;
+                    this.editingUsers.delete(key);
+                    this.hideEditingIndicator(data.partnershipId, data.field);
+                });
+
+                // Desconectado
+                this.socket.on('disconnect', () => {
+                    console.log('❌ Desconectado do servidor');
+                    this.isConnected = false;
+                    this.updateConnectionStatus(false);
+                    this.showNotification('Conexão perdida. Tentando reconectar...', 'error');
+                });
+
+                // Reconectado
+                this.socket.on('reconnect', () => {
+                    console.log('🔄 Reconectado ao servidor');
+                    this.isConnected = true;
+                    this.updateConnectionStatus(true);
+                    this.socket.emit('register', { name: this.userName });
+                    this.showNotification('Reconectado com sucesso!', 'success');
+                });
+
+                // Erro de conexão
+                this.socket.on('connect_error', (error) => {
+                    console.error('❌ Erro de conexão:', error);
+                    this.showNotification('Erro de conexão com o servidor', 'error');
+                    this.showLoading(false);
+                });
+            }
+
+            // Adiciona nova parceria
+            async addPartnership() {
+                if (!this.isConnected) {
+                    this.showNotification('Sem conexão com o servidor', 'error');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/partnerships', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            userName: this.userName
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Não precisa atualizar aqui, o WebSocket fará isso
+                        this.showNotification('Nova parceria criada!', 'success');
+                    } else {
+                        throw new Error(result.message);
+                    }
+                } catch (error) {
+                    console.error('Erro ao criar parceria:', error);
+                    this.showNotification('Erro ao criar parceria', 'error');
+                }
+            }
+
+            // Atualiza parceria
+            async updatePartnership(id, field, value) {
+                if (!this.isConnected) {
+                    this.showNotification('Sem conexão com o servidor', 'error');
+                    return;
+                }
+
+                try {
+                    const updateData = {
+                        [field]: value,
+                        field: field,
+                        userName: this.userName
+                    };
+
+                    const response = await fetch(`/api/partnerships/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(updateData)
+                    });
+
+                    const result = await response.json();
+                    
+                    if (!result.success) {
+                        throw new Error(result.message);
+                    }
+                } catch (error) {
+                    console.error('Erro ao atualizar parceria:', error);
+                    this.showNotification('Erro ao salvar alterações', 'error');
+                }
+            }
+
+            // Remove parceria
+            async removePartnership(id) {
+                if (!this.isConnected) {
+                    this.showNotification('Sem conexão com o servidor', 'error');
+                    return;
+                }
+
+                if (!confirm('Tem certeza que deseja apagar esta parceria?')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/partnerships/${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.showNotification('Parceria removida!', 'success');
+                    } else {
+                        throw new Error(result.message);
+                    }
+                } catch (error) {
+                    console.error('Erro ao remover parceria:', error);
+                    this.showNotification('Erro ao remover parceria', 'error');
+                }
+            }
+
+            // Limpa todas as parcerias
+            async clearAll() {
+                if (!this.isConnected) {
+                    this.showNotification('Sem conexão com o servidor', 'error');
+                    return;
+                }
+
+                if (!confirm('Tem certeza que deseja apagar TODAS as parcerias? Esta ação não pode ser desfeita.')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/partnerships', {
+                        method: 'DELETE'
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.showNotification('Todas as parcerias foram removidas!', 'success');
+                    } else {
+                        throw new Error(result.message);
+                    }
+                } catch (error) {
+                    console.error('Erro ao limpar parcerias:', error);
+                    this.showNotification('Erro ao limpar parcerias', 'error');
+                }
+            }
+
+            // Renderiza a tabela
+            render() {
+                const tbody = document.getElementById('partnershipsTable');
+                const emptyState = document.getElementById('emptyState');
+                const partnershipCount = document.getElementById('partnershipCount');
+
+                partnershipCount.textContent = this.partnerships.length;
+
+                if (this.partnerships.length === 0) {
+                    tbody.innerHTML = '';
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                emptyState.style.display = 'none';
+
+                tbody.innerHTML = this.partnerships.map(partnership => `
+                    <tr class="fade-in" data-id="${partnership.id}">
+                        <td>
+                            <input type="text" 
+                                   class="editable" 
+                                   data-field="projectName"
+                                   value="${this.escapeHtml(partnership.projectName)}"
+                                   onblur="manager.handleFieldUpdate('${partnership.id}', 'projectName', this.value)"
+                                   onfocus="manager.handleFieldFocus('${partnership.id}', 'projectName')"
+                                   placeholder="Nome do projeto...">
+                        </td>
+                        <td>
+                            <input type="number" 
+                                   class="editable" 
+                                   data-field="numberOfWLs"
+                                   value="${partnership.numberOfWLs}"
+                                   onblur="manager.handleFieldUpdate('${partnership.id}', 'numberOfWLs', parseInt(this.value) || 0)"
+                                   onfocus="manager.handleFieldFocus('${partnership.id}', 'numberOfWLs')"
+                                   placeholder="0"
+                                   min="0">
+                        </td>
+                        <td>
+                            <textarea class="editable textarea" 
+                                      data-field="templateDescription"
+                                      onblur="manager.handleFieldUpdate('${partnership.id}', 'templateDescription', this.value)"
+                                      onfocus="manager.handleFieldFocus('${partnership.id}', 'templateDescription')"
+                                      placeholder="Descrição dos templates...">${this.escapeHtml(partnership.templateDescription)}</textarea>
+                        </td>
+                        <td>
+                            <textarea class="editable textarea" 
+                                      data-field="collectedWallets"
+                                      onblur="manager.handleFieldUpdate('${partnership.id}', 'collectedWallets', this.value)"
+                                      onfocus="manager.handleFieldFocus('${partnership.id}', 'collectedWallets')"
+                                      placeholder="Uma wallet por linha...">${this.escapeHtml(partnership.collectedWallets)}</textarea>
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn-small btn-edit" onclick="manager.editPartnership('${partnership.id}')">
+                                    ✏️ Editar
+                                </button>
+                                <button class="btn-small btn-delete" onclick="manager.removePartnership('${partnership.id}')">
+                                    🗑️ Apagar
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
+                // Auto-resize para textareas
+                this.setupTextareaAutoResize();
+            }
+
+            // Manipula foco no campo
+            handleFieldFocus(partnershipId, field) {
+                if (this.socket && this.isConnected) {
+                    this.socket.emit('editing', { partnershipId, field });
+                }
+            }
+
+            // Manipula atualização do campo
+            handleFieldUpdate(partnershipId, field, value) {
+                if (this.socket && this.isConnected) {
+                    this.socket.emit('stopEditing', { partnershipId, field });
+                }
+                this.updatePartnership(partnershipId, field, value);
+            }
+
+            // Mostra indicador de edição
+            showEditingIndicator(partnershipId, field, userName) {
+                const row = document.querySelector(`[data-id="${partnershipId}"]`);
+                if (row) {
+                    const cell = row.querySelector(`[data-field="${field}"]`).parentElement;
+                    
+                    // Remove indicador existente
+                    const existing = cell.querySelector('.editing-indicator');
+                    if (existing) existing.remove();
+                    
+                    // Adiciona novo indicador
+                    const indicator = document.createElement('div');
+                    indicator.className = 'editing-indicator';
+                    indicator.textContent = `${userName} editando...`;
+                    cell.appendChild(indicator);
+                }
+            }
+
+            // Remove indicador de edição
+            hideEditingIndicator(partnershipId, field) {
+                const row = document.querySelector(`[data-id="${partnershipId}"]`);
+                if (row) {
+                    const cell = row.querySelector(`[data-field="${field}"]`).parentElement;
+                    const indicator = cell.querySelector('.editing-indicator');
+                    if (indicator) indicator.remove();
+                }
+            }
+
+            // Foca no primeiro campo para edição
+            editPartnership(id) {
+                const row = document.querySelector(`[data-id="${id}"]`);
+                if (row) {
+                    const firstInput = row.querySelector('.editable');
+                    if (firstInput) {
+                        firstInput.focus();
+                        firstInput.select();
+                    }
+                }
+            }
+
+            // Atualiza status da conexão
+            updateConnectionStatus(connected) {
+                const statusElement = document.getElementById('connectionStatus');
+                const iconElement = document.getElementById('statusIcon');
+                const textElement = document.getElementById('statusText');
+
+                if (connected) {
+                    statusElement.className = 'connection-status status-connected';
+                    iconElement.textContent = '🟢';
+                    textElement.textContent = 'Conectado';
+                } else {
+                    statusElement.className = 'connection-status status-disconnected';
+                    iconElement.textContent = '🔴';
+                    textElement.textContent = 'Desconectado';
+                }
+            }
+
+            // Atualiza contador de usuários
+            updateUserCount() {
+                const userCountElement = document.getElementById('userCount');
+                const count = this.connectedUsers.length;
+                userCountElement.textContent = `${count} usuário${count !== 1 ? 's' : ''} online`;
+            }
+
+            // Auto-resize para textareas
+            setupTextareaAutoResize() {
+                document.querySelectorAll('.textarea').forEach(textarea => {
+                    textarea.addEventListener('input', function() {
+                        this.style.height = 'auto';
+                        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+                    });
+                });
+            }
+
+            // Mostra/esconde loading
+            showLoading(show) {
+                const overlay = document.getElementById('loadingOverlay');
+                overlay.style.display = show ? 'flex' : 'none';
+            }
+
+            // Mostra notificação
+            showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.innerHTML = `
+                    <div style="font-weight: 600; margin-bottom: 5px;">
+                        ${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}
+                        ${type === 'success' ? 'Sucesso' : type === 'error' ? 'Erro' : type === 'warning' ? 'Aviso' : 'Info'}
+                    </div>
+                    <div>${message}</div>
+                `;
+
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.remove();
+                }, 4000);
+            }
+
+            // Escapa HTML para segurança
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text || '';
+                return div.innerHTML;
+            }
+        }
+
+        // Inicializa o gerenciador
+        const manager = new CollaborativePartnershipManager();
+
+        // Funções globais para os botões
+        function addNewPartnership() {
+            manager.addPartnership();
+        }
+
+        function clearAllData() {
+            manager.clearAll();
+        }
+
+        function setUserName() {
+            manager.setUserName();
+        }
+
+        // Atalhos de teclado
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                addNewPartnership();
+            }
+            
+            if (e.ctrlKey && e.shiftKey && e.key === 'Delete') {
+                e.preventDefault();
+                clearAllData();
+            }
+        });
+
+        console.log('🚀 Gerenciador Colaborativo de Parcerias e WLs carregado!');
+        console.log('💡 Recursos:');
+        console.log('   • Sincronização em tempo real');
+        console.log('   • Colaboração entre usuários');
+        console.log('   • Indicadores de edição ao vivo');
+        console.log('   • Persistência no servidor');
+    </script>
+</body>
+</html>
