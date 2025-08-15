@@ -686,7 +686,7 @@ io.on('connection', (socket) => {
 
 // Rotas estáticas
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'login.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.get('/dashboard', (req, res) => {

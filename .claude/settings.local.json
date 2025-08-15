@@ -7,7 +7,9 @@
       "Bash(git config:*)",
       "Bash(git --version)",
       "Bash(gh:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git rm:*)",
+      "Bash(git mv:*)"
     ],
     "defaultMode": "acceptEdits"
   }
