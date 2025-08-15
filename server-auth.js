@@ -438,9 +438,11 @@ app.post('/api/partnerships', authenticateToken, async (req, res) => {
         const newPartnership = {
             id: generateId(),
             projectName: req.body.projectName || '',
+            network: req.body.network || 'Ethereum',
             numberOfWLs: parseInt(req.body.numberOfWLs) || 0,
             templateDescription: req.body.templateDescription || '',
             collectedWallets: req.body.collectedWallets || '',
+            status: req.body.status || 'active',
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             createdBy: req.user.name,
@@ -484,6 +486,15 @@ app.put('/api/partnerships/:id', authenticateToken, async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: 'Parceria não encontrada'
+            });
+        }
+
+        // Verifica permissões: apenas o criador ou admin pode editar
+        const partnership = partnerships[partnershipIndex];
+        if (req.user.role !== 'admin' && partnership.createdByEmail !== req.user.email) {
+            return res.status(403).json({
+                success: false,
+                message: 'Você só pode editar parcerias que você criou'
             });
         }
 
@@ -700,7 +711,11 @@ app.get('/', (req, res) => {
 });
 
 app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'dashboard.html'));
+    res.sendFile(path.join(__dirname, 'dashboard-new.html'));
+});
+
+app.get('/partnership-details', (req, res) => {
+    res.sendFile(path.join(__dirname, 'partnership-details.html'));
 });
 
 app.get('/admin', (req, res) => {
