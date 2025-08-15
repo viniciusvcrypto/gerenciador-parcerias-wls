@@ -829,6 +829,8 @@
                     console.error('Erro ao remover parceria:', error);
                     if (error.message.includes('Token')) {
                         this.logout();
+                    } else if (error.message.includes('só pode apagar')) {
+                        this.showNotification('Você só pode apagar parcerias que você criou', 'error');
                     } else {
                         this.showNotification('Erro ao remover parceria', 'error');
                     }
@@ -892,7 +894,12 @@
 
                 emptyState.style.display = 'none';
 
-                tbody.innerHTML = this.partnerships.map(partnership => `
+                tbody.innerHTML = this.partnerships.map(partnership => {
+                    // Verifica se o usuário pode deletar esta parceria
+                    const canDelete = this.currentUser.role === 'admin' || 
+                                     partnership.createdByEmail === this.currentUser.email;
+                    
+                    return `
                     <tr class="fade-in" data-id="${partnership.id}">
                         <td>
                             <input type="text" 
@@ -941,13 +948,19 @@
                                 <button class="btn-small btn-edit" onclick="manager.editPartnership('${partnership.id}')">
                                     ✏️ Editar
                                 </button>
-                                <button class="btn-small btn-delete" onclick="manager.removePartnership('${partnership.id}')">
-                                    🗑️ Apagar
-                                </button>
+                                ${canDelete ? 
+                                    `<button class="btn-small btn-delete" onclick="manager.removePartnership('${partnership.id}')">
+                                        🗑️ Apagar
+                                    </button>` : 
+                                    `<button class="btn-small btn-delete" disabled title="Você só pode apagar parcerias que você criou" style="opacity: 0.5; cursor: not-allowed;">
+                                        🔒 Apagar
+                                    </button>`
+                                }
                             </div>
                         </td>
                     </tr>
-                `).join('');
+                    `;
+                }).join('');
 
                 // Auto-resize para textareas
                 this.setupTextareaAutoResize();

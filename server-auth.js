@@ -535,6 +535,16 @@ app.delete('/api/partnerships/:id', authenticateToken, async (req, res) => {
             });
         }
 
+        const partnership = partnerships[partnershipIndex];
+        
+        // Verifica permissões: apenas o criador ou admin pode deletar
+        if (req.user.role !== 'admin' && partnership.createdByEmail !== req.user.email) {
+            return res.status(403).json({
+                success: false,
+                message: 'Você só pode apagar parcerias que você criou'
+            });
+        }
+
         const deletedPartnership = partnerships[partnershipIndex];
         partnerships.splice(partnershipIndex, 1);
         await savePartnerships();
